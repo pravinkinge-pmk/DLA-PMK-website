@@ -68,15 +68,12 @@ function normalize(json) {
   }
   if (!Array.isArray(json) || json.length === 0) return false;
 
-  if (Array.isArray(json[0])) {                 // array of arrays
-    headers = json[0].map(String);
-    rows = json.slice(1);
-  } else {                                      // array of objects
-    headers = Object.keys(json[0]);
-    rows = json.map(function (o) {
-      return headers.map(function (h) { return o[h]; });
-    });
-  }
+  // Since the Google Apps Script now accurately maps rows to header keys:
+  headers = Object.keys(json[0]); 
+  rows = json.map(function (o) {
+    return headers.map(function (h) { return o[h]; });
+  });
+  
   return true;
 }
 
