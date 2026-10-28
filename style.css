@@ -1,0 +1,44 @@
+* { box-sizing: border-box; }
+body {
+font-family: Arial, sans-serif;
+margin: 0;
+background: #f4f6f9;
+color: #222;
+}
+header {
+background: #1f4e79;
+color: #fff;
+padding: 20px;
+text-align: center;
+}
+header h1 { margin: 0 0 6px; font-size: 1.6rem; }
+header p { margin: 0; font-size: 0.9rem; opacity: 0.9; }
+main { max-width: 1000px; margin: 20px auto; padding: 0 12px; }
+#searchBox {
+width: 100%;
+padding: 12px;
+font-size: 1rem;
+border: 1px solid #bbb;
+border-radius: 6px;
+margin-bottom: 12px;
+}
+table {
+width: 100%;
+border-collapse: collapse;
+Digital Literacy and Application | Unit 6 | Activity 6
+Page 6
+background: #fff;
+box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e3e3e3; }
+th { background: #2e75b6; color: #fff; cursor: pointer; user-select: none; }
+th:hover { background: #1f4e79; }
+tr:nth-child(even) td { background: #f8fafc; }
+/* Phones: show each row as a card */
+@media (max-width: 600px) {
+thead { display: none; }
+table, tbody, tr, td { display: block; width: 100%; }
+tr { margin-bottom: 12px; border: 1px solid #ddd; border-radius: 6px; background: #fff; }
+td { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; }
+td::before { content: attr(data-label); font-weight: bold; color: #1f4e79; }
+}
