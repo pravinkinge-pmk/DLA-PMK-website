@@ -1,4 +1,4 @@
-var API_URL = 'https://script.google.com/macros/s/AKfycbwFI6uAwKmOO2ORcDH0Ht_AixBcjORyRx3a8Cp1slDn-KMMcVjjkdAw3FK1_wzST1LVLw/exec';
+var API_URL = 'https://script.google.com/macros/s/AKfycby09Jk7iaIc7BmA1zdFEq2HIkFKhllrHKyYIh5AxrBtyPWuZr_Sv7U4t-xbQWf79-2jxg/exec';
 var KEYS = ['srNo', 'rollNo', 'name', 'tenth', 'twelfth', 'sem1', 'sem2'];
 var LABELS = ['Sr No', 'Roll No', 'Student Name', '10th', '12th', 'Sem 1', 'Sem 2'];
 var students = [];
