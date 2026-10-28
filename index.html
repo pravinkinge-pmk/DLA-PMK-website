@@ -28,3 +28,145 @@
   }
 </style>
 </head>
+<body>
+<header>
+  <h1>Student Records</h1>
+  <p id="count"></p>
+</header>
+<main>
+  <input type="text" id="searchBox" placeholder="Search by roll no or name...">
+  <p id="status">Loading...</p>
+  <table>
+    <thead id="thead"></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</main>
+
+<script>
+// >>> PASTE YOUR APPS SCRIPT WEB APP URL BETWEEN THE QUOTES <<<
+var API_URL = 'https://script.google.com/macros/s/AKfycby_kfaS0mspOjR0Zpn4Jhj--wToiZhDx8MjSbK0lroNJN8vVGqJUIxQ3zJLjfhx5SMraw/exec';
+
+var headers = [];   // column names
+var rows = [];      // each row is an array of values
+var sortCol = -1, sortAsc = true;
+
+var statusEl = document.getElementById('status');
+var countEl = document.getElementById('count');
+var thead = document.getElementById('thead');
+var tbody = document.getElementById('tbody');
+var searchBox = document.getElementById('searchBox');
+
+function showError(msg) {
+  statusEl.className = 'err';
+  statusEl.textContent = msg;
+}
+
+// Accepts: array of objects, array of arrays, or {data:[...]}
+function normalize(json) {
+  if (json && !Array.isArray(json)) {
+    json = json.data || json.rows || json.students || [];
+  }
+  if (!Array.isArray(json) || json.length === 0) return false;
+
+  if (Array.isArray(json[0])) {                 // array of arrays
+    headers = json[0].map(String);
+    rows = json.slice(1);
+  } else {                                      // array of objects
+    headers = Object.keys(json[0]);
+    rows = json.map(function (o) {
+      return headers.map(function (h) { return o[h]; });
+    });
+  }
+  return true;
+}
+
+function load() {
+  if (API_URL.indexOf('PASTE_') === 0) {
+    showError('Open index.html in a text editor and paste your Apps Script URL into API_URL.');
+    return;
+  }
+  fetch(API_URL)
+    .then(function (res) {
+      if (!res.ok) throw new Error('Server replied with status ' + res.status);
+      return res.text();
+    })
+    .then(function (text) {
+      var json;
+      try { json = JSON.parse(text); }
+      catch (e) {
+        throw new Error('The URL did not return JSON. It returned:\n' + text.substring(0, 200));
+      }
+      if (!normalize(json)) throw new Error('JSON was empty or in an unknown format:\n' + text.substring(0, 200));
+      statusEl.textContent = '';
+      statusEl.className = '';
+      drawHead();
+      render();
+    })
+    .catch(function (err) {
+      showError('Could not load data.\n' + err.message +
+        '\n\nCheck: URL ends with /exec, and deployment access is "Anyone".');
+    });
+}
+
+function drawHead() {
+  var tr = document.createElement('tr');
+  headers.forEach(function (h, i) {
+    var th = document.createElement('th');
+    th.textContent = h;
+    th.addEventListener('click', function () {
+      if (sortCol === i) sortAsc = !sortAsc; else { sortCol = i; sortAsc = true; }
+      render();
+    });
+    tr.appendChild(th);
+  });
+  thead.innerHTML = '';
+  thead.appendChild(tr);
+}
+
+function render() {
+  var q = searchBox.value.trim().toLowerCase();
+
+  // search by any column whose name contains "roll" or "name"; fall back to all columns
+  var searchCols = [];
+  headers.forEach(function (h, i) {
+    var l = h.toLowerCase();
+    if (l.indexOf('roll') !== -1 || l.indexOf('name') !== -1) searchCols.push(i);
+  });
+  if (searchCols.length === 0) searchCols = headers.map(function (_, i) { return i; });
+
+  var list = rows.filter(function (r) {
+    if (!q) return true;
+    return searchCols.some(function (i) {
+      return String(r[i]).toLowerCase().indexOf(q) !== -1;
+    });
+  });
+
+  if (sortCol >= 0) {
+    list.sort(function (a, b) {
+      var x = a[sortCol], y = b[sortCol];
+      var nx = parseFloat(x), ny = parseFloat(y);
+      var r = (!isNaN(nx) && !isNaN(ny)) ? nx - ny : String(x).localeCompare(String(y));
+      return sortAsc ? r : -r;
+    });
+  }
+
+  tbody.innerHTML = '';
+  list.forEach(function (r) {
+    var tr = document.createElement('tr');
+    r.forEach(function (v, i) {
+      var td = document.createElement('td');
+      td.textContent = (v === null || v === undefined) ? '' : v;
+      td.setAttribute('data-label', headers[i]);
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+
+  countEl.textContent = 'Showing ' + list.length + ' of ' + rows.length + ' students';
+}
+
+searchBox.addEventListener('input', render);
+load();
+</script>
+</body>
+</html>
