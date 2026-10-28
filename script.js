@@ -1,4 +1,4 @@
-var NOCODB_URL = 'https://app.nocodb.com';
+var NOCODB_URL = 'https://app.nocodb.com/w29f6g8m';
 var BASE_ID    = 'prb0yi6j5sx9g0z';
 var TABLE_ID   = 'mmaxa383947cc7m';
 var API_TOKEN  = 'nc_pat_qF9lh8U7YuABuBZPbSmCLXQlqF9RJROOPmVljNqX';
