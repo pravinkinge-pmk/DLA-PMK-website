@@ -2,7 +2,7 @@
 var NOCODB_URL = 'https://app.nocodb.com';
 var BASE_ID    = 'prb0yi6j5sx9g0z';
 var TABLE_ID   = 'mmaxa383947cc7m';
-var API_TOKEN  = 'nc_pat_qF9lh8U7YuABuBZPbSmCLXQlqF9RJROOPmVljNqX';   // starts with nc_pat_
+var API_TOKEN  = 'PASTE_YOUR_NEW_TOKEN_HERE';   // starts with nc_pat_
 // ---------------------------------------------------------
 
 var headers = [];      // column names
@@ -43,6 +43,73 @@ function loadV3(url, all) {
   });
 }
 
+// Older API (v2): { list: [ {...} ], pageInfo: { isLastPage: bool } }
+function loadV2(offset, all) {
+  var url = NOCODB_URL + '/api/v2/tables/' + TABLE_ID + '/records?limit=100&offset=' + offset;
+  return getJson(url).then(function (json) {
+    var recs = json.list || [];
+    all = all.concat(recs);
+    var last = !json.pageInfo || json.pageInfo.isLastPage || recs.length === 0;
+    if (last) { return all; }
+    return loadV2(offset + 100, all);
+  });
+}
+
+function loadData() {
+  statusEl.className = '';
+  statusEl.textContent = 'Loading...';
+
+  var v3Url = NOCODB_URL + '/api/v3/data/' + BASE_ID + '/' + TABLE_ID + '/records?pageSize=100';
+
+  loadV3(v3Url, [])
+    .catch(function (err) {
+      console.warn('v3 failed, trying v2:', err);
+      return loadV2(0, []);
+    })
+    .then(function (records) {
+      if (!records.length) {
+        showError('Connected, but the table has no records.');
+        return;
+      }
+      // Column names come from the first record, skipping NocoDB system fields
+      headers = Object.keys(records[0]).filter(function (k) {
+        return k !== 'Id' && k !== 'id' && k !== 'CreatedAt' && k !== 'UpdatedAt';
+      });
+      rows = records.map(function (rec) {
+        return headers.map(function (h) { return rec[h]; });
+      });
+
+      thead.innerHTML = '';
+      var tr = document.createElement('tr');
+      headers.forEach(function (h, i) {
+        var th = document.createElement('th');
+        th.textContent = h;
+        th.style.cursor = 'pointer';
+        th.addEventListener('click', function () {
+          if (sortCol === i) { sortAsc = !sortAsc; } else { sortCol = i; sortAsc = true; }
+          render();
+        });
+        tr.appendChild(th);
+      });
+      thead.appendChild(tr);
+
+      statusEl.textContent = '';
+      render();
+    })
+    .catch(function (err) {
+      console.error(err);
+      showError('Could not load data. ' + err.message);
+    });
+}
+
+function render() {
+  var q = searchBox.value.trim().toLowerCase();
+
+  var list = rows.filter(function (r) {
+    if (!q) { return true; }
+    return r.some(function (v) {
+      return String(v === null || v === undefined ? '' : v).toLowerCase().indexOf(q) !== -1;
+    });
   });
 
   if (sortCol >= 0) {
