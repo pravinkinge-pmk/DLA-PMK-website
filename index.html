@@ -43,8 +43,8 @@
 </main>
 
 <script>
-// >>> PASTE YOUR APPS SCRIPT WEB APP URL BETWEEN THE QUOTES <<<
-var API_URL = 'https://script.google.com/macros/s/AKfycbx0UIJJMDKQwlUGa8g3rrCI6E6pLKZd-nUFhoHECbYaCNnpXoHMfbTEmi5u22SD4M8PEA/exec';
+// >>> PASTE YOUR APPS SCRIPT WEB APP URL BETWEEN THE QUOTES BELOW <<<
+var API_URL = 'https://google.com';
 
 var headers = [];   // column names
 var rows = [];      // each row is an array of values
@@ -61,19 +61,30 @@ function showError(msg) {
   statusEl.textContent = msg;
 }
 
-// Accepts: array of objects, array of arrays, or {data:[...]}
+// Robust layout handler for handling object arrays and plain data streams
 function normalize(json) {
-  if (json && !Array.isArray(json)) {
-    json = json.data || json.rows || json.students || [];
-  }
-  if (!Array.isArray(json) || json.length === 0) return false;
-
-  // Extract clean headers from the keys of the first row object
-  headers = Object.keys(json[0]); 
-  rows = json.map(function (o) {
-    return headers.map(function (h) { return o[h]; });
-  });
+  var dataRecords = json;
   
+  // Drill down if Google outputs data embedded within common root keys
+  if (json && !Array.isArray(json)) {
+    dataRecords = json.data || json.rows || json.students || [];
+  }
+  
+  if (!Array.isArray(dataRecords) || dataRecords.length === 0) return false;
+
+  // If payload arrives as flat nested arrays instead of keys
+  if (Array.isArray(dataRecords[0])) {
+    headers = dataRecords[0].map(String);
+    rows = dataRecords.slice(1);
+  } else {
+    // Standard key-value formatting maps directly to columns
+    headers = Object.keys(dataRecords[0]);
+    rows = dataRecords.map(function (o) {
+      return headers.map(function (h) { 
+        return (o[h] !== undefined && o[h] !== null) ? o[h] : ''; 
+      });
+    });
+  }
   return true;
 }
 
@@ -82,6 +93,9 @@ function load() {
     showError('Open index.html in a text editor and paste your Apps Script URL into API_URL.');
     return;
   }
+  
+  statusEl.textContent = 'Fetching live sheet records...';
+  
   fetch(API_URL)
     .then(function (res) {
       if (!res.ok) throw new Error('Server replied with status ' + res.status);
@@ -89,18 +103,23 @@ function load() {
     })
     .then(function (text) {
       var json;
-      try { json = JSON.parse(text); }
-      catch (e) {
-        throw new Error('The URL did not return JSON. It returned:\n' + text.substring(0, 200));
+      try { 
+        json = JSON.parse(text); 
+      } catch (e) {
+        throw new Error('The URL did not return clean JSON formatting. Output:\n' + text.substring(0, 200));
       }
-      if (!normalize(json)) throw new Error('JSON was empty or in an unknown format:\n' + text.substring(0, 200));
+      
+      if (!normalize(json)) {
+        throw new Error('No target student objects or rows discovered inside the received payload data stream.');
+      }
+      
       statusEl.textContent = '';
       statusEl.className = '';
       drawHead();
       render();
     })
     .catch(function (err) {
-      showError('Could not load data.\n' + err.message + '\n\nCheck: URL ends with /exec, and deployment access is "Anyone".');
+      showError('Could not load data.\n' + err.message + '\n\nAction Required:\n1. Verify your Apps Script is deployed as "Anyone".\n2. Make sure you generated a "New Version" when updating backend script code.');
     });
 }
 
@@ -122,7 +141,6 @@ function drawHead() {
 function render() {
   var q = searchBox.value.trim().toLowerCase();
 
-  // search by any column whose name contains "roll" or "name"; fall back to all columns
   var searchCols = [];
   headers.forEach(function (h, i) {
     var l = h.toLowerCase();
