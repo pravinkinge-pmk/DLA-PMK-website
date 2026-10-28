@@ -2,7 +2,7 @@
 var NOCODB_URL = 'https://app.nocodb.com';
 var BASE_ID    = 'prb0yi6j5sx9g0z';
 var TABLE_ID   = 'mmaxa383947cc7m';
-var API_TOKEN  = 'PASTE_YOUR_NEW_TOKEN_HERE';   // starts with nc_pat_
+var API_TOKEN  = 'nc_pat_qF9lh8U7YuABuBZPbSmCLXQlqF9RJROOPmVljNqX';   // starts with nc_pat_
 // ---------------------------------------------------------
 
 var headers = [];      // column names
