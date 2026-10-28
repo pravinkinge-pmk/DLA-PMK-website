@@ -44,7 +44,7 @@
 
 <script>
 // >>> PASTE YOUR APPS SCRIPT WEB APP URL BETWEEN THE QUOTES <<<
-var API_URL = 'https://script.google.com/macros/s/AKfycbwmGEOyk_D2ydUB9WaeO0mDUwJfMmqmBphnFuidSVPzm0F5PDGL1PwoR8sDc6udkilu2w/exec';
+var API_URL = 'https://script.google.com/macros/s/AKfycbx0UIJJMDKQwlUGa8g3rrCI6E6pLKZd-nUFhoHECbYaCNnpXoHMfbTEmi5u22SD4M8PEA/exec';
 
 var headers = [];   // column names
 var rows = [];      // each row is an array of values
@@ -68,7 +68,7 @@ function normalize(json) {
   }
   if (!Array.isArray(json) || json.length === 0) return false;
 
-  // Since the Google Apps Script now accurately maps rows to header keys:
+  // Extract clean headers from the keys of the first row object
   headers = Object.keys(json[0]); 
   rows = json.map(function (o) {
     return headers.map(function (h) { return o[h]; });
